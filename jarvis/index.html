@@ -1,0 +1,170 @@
+<html>
+  <head>
+    <style>
+      #jarvis-and-overlays-container {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      #jarvis-container {
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+      }
+
+      #jarvis-loading-screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.99;
+        background-color: #fff;
+        z-index: 9999;
+      }
+    </style>
+    <script src="jarvis.bootstrap.2.0.0.js"></script>
+  </head>
+  <body>
+    <div id="jarvis-and-overlays-container">
+      <div id="jarvis-container">
+        <div id="jarvis-loading-screen">
+          Loading Jarvis<br /><span id="jarvis-loading-progress"></span>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.onload = function () {
+        var isSwitchingVideo = false
+        var logMessages = []
+
+        var onLoadError = function (message) {
+          var innerHTML =
+            'Jarvis cannot run in your environment. Fehlermeldung: ' + message
+          if (logMessages.length) {
+            innerHTML += '<br><br>Log: <br>'
+            for (var i = 0; i < logMessages.length; i++) {
+              innerHTML += logMessages[i] + '<br>'
+            }
+          }
+          document.getElementById('jarvis-container').innerHTML = innerHTML
+        }
+        var onLoadProgress = function (stepId) {
+          document.getElementById('jarvis-loading-progress').innerHTML =
+            '<strong>' + stepId + '</strong>'
+        }
+        var onLoadEnd = function () {
+          return new Promise(function (resolve, reject) {
+            resolve()
+            document
+              .getElementById('jarvis-container')
+              .removeChild(document.getElementById('jarvis-loading-screen'))
+          })
+        }
+
+        var onEvent = function (eventName, payload) {
+          switch (eventName) {
+            case 'Log':
+              if (payload && payload.message) {
+                logMessages.push(payload.message)
+                console.log(payload.message)
+              }
+              return
+          }
+        }
+
+        var config = {
+          initialPosition: {
+            lat: 0,
+            lon: 178,
+          },
+          minLat: -80,
+          maxLat: 80,
+          measurePerformanceIntervalInMs: 500,
+          minRequiredFps: 0,
+        }
+
+        var papsXRConfig = {
+          startScreenImageUrl: 'media/start-screen.png',
+          webXRHUDFieldOfView: {
+            verticalInDegrees: 93 * 0.5,
+            horizontalInDegrees: 89 * 0.5,
+          },
+          cases: [
+            {
+              id: 'case1',
+              buttonActiveTextureUrl: 'textures/case-car-active.png',
+              buttonInactiveTextureUrl: 'textures/case-car-inactive.png',
+              videos: [
+                {
+                  id: 'case1_video1',
+                  videoUrl: 'media/bike.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+                {
+                  id: 'case1_video2',
+                  videoUrl: 'media/car.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+              ],
+            },
+            {
+              id: 'case2',
+              buttonActiveTextureUrl: 'textures/case-person-active.png',
+              buttonInactiveTextureUrl: 'textures/case-person-inactive.png',
+              videos: [
+                {
+                  id: 'case2_video1',
+                  videoUrl: 'media/car.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+                {
+                  id: 'case2_video2',
+                  videoUrl: 'media/bike.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+              ],
+            },
+            {
+              id: 'case3',
+              buttonActiveTextureUrl: 'textures/case-bike-active.png',
+              buttonInactiveTextureUrl: 'textures/case-bike-inactive.png',
+              videos: [
+                {
+                  id: 'case3_video1',
+                  videoUrl: 'media/bike.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+                {
+                  id: 'case3_video2',
+                  videoUrl: 'media/car.mp4',
+                  summaryTextureUrl: 'textures/example-summary.png',
+                },
+              ],
+              summaryTextureUrl: 'textures/case-summary.png',
+            },
+          ],
+        }
+
+        Jarvis.bootstrap.useModule(
+          'papsxr',
+          'jarvis.papsxr.2.0.0.js',
+          papsXRConfig
+        )
+        Jarvis.bootstrap.configure(config)
+        Jarvis.bootstrap.onLoadError(onLoadError)
+        Jarvis.bootstrap.onLoadProgress(onLoadProgress)
+        Jarvis.bootstrap.onLoadEnd(onLoadEnd)
+        Jarvis.bootstrap.addEventCallback(onEvent)
+        Jarvis.bootstrap.loadInContainer('jarvis-container')
+      }
+    </script>
+  </body>
+</html>
